@@ -3,6 +3,7 @@ import '../network/api_client.dart';
 import '../storage/secure_storage_service.dart';
 import '../../features/auth/auth.dart';
 import '../../features/home/home.dart';
+import '../../features/products/products.dart';
 
 /// Global GetIt instance for dependency injection
 final GetIt getIt = GetIt.instance;
@@ -57,6 +58,19 @@ Future<void> initializeDependencies() async {
   );
   getIt.registerFactory<HomeCubit>(
     () => HomeCubit(homeRepository: getIt<HomeRepository>()),
+  );
+
+  // Features - Products
+  getIt.registerLazySingleton<ProductsRemoteDataSource>(
+    () => ProductsRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<ProductsRepository>(
+    () => ProductsRepositoryImpl(
+      remoteDataSource: getIt<ProductsRemoteDataSource>(),
+    ),
+  );
+  getIt.registerFactory<ProductListCubit>(
+    () => ProductListCubit(repository: getIt<ProductsRepository>()),
   );
 }
 

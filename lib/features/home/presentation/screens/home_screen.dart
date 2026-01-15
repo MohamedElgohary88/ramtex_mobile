@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../app/router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/home_data.dart';
 import '../cubit/home_cubit.dart';
@@ -67,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: TextField(
           readOnly: true,
-          // onTap: () => context.pushNamed(AppRouter.search), // Todo: Implement search
+          onTap: () => context.pushNamed(AppRouter.products),
           decoration: InputDecoration(
             hintText: 'Search products, brands...',
             hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),

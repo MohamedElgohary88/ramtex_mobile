@@ -8,6 +8,7 @@ import '../features/auth/presentation/cubit/auth_state.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/register_screen.dart';
 import '../features/home/home.dart';
+import '../features/products/products.dart';
 
 /// App Router Configuration using GoRouter
 /// 
@@ -111,6 +112,14 @@ class AppRouter {
         builder: (context, state) => BlocProvider(
           create: (_) => getIt<HomeCubit>(),
           child: const HomeScreen(),
+        ),
+      ),
+      GoRoute(
+        path: productsPath,
+        name: products,
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<ProductListCubit>(),
+          child: const SearchScreen(),
         ),
       ),
       
