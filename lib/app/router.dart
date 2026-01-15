@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../core/di/injection_container.dart';
+import '../core/router/go_router_refresh_stream.dart';
 import '../features/auth/presentation/cubit/auth_cubit.dart';
+import '../features/auth/presentation/cubit/auth_state.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/register_screen.dart';
+import '../features/home/home.dart';
 
 /// App Router Configuration using GoRouter
 /// 
@@ -13,17 +16,14 @@ import '../features/auth/presentation/screens/register_screen.dart';
 /// - Auth-based redirects
 /// - Shell routes for bottom navigation (future)
 class AppRouter {
-  AppRouter._();
+  final String initialLocation;
 
-  static final AppRouter _instance = AppRouter._();
-  factory AppRouter() => _instance;
-  static AppRouter get instance => _instance;
+  AppRouter({required this.initialLocation});
 
   // ============================================
   // ROUTE NAMES
   // ============================================
   
-  static const String splash = 'splash';
   static const String login = 'login';
   static const String register = 'register';
   static const String home = 'home';
@@ -40,7 +40,6 @@ class AppRouter {
   // ROUTE PATHS
   // ============================================
   
-  static const String splashPath = '/';
   static const String loginPath = '/login';
   static const String registerPath = '/register';
   static const String homePath = '/home';
@@ -58,54 +57,69 @@ class AppRouter {
   // ============================================
 
   late final GoRouter router = GoRouter(
-    initialLocation: loginPath, // Start at login for now
+    initialLocation: initialLocation, 
     debugLogDiagnostics: true,
+    refreshListenable: GoRouterRefreshStream(getIt<AuthCubit>().stream),
+    redirect: (context, state) {
+      final authState = getIt<AuthCubit>().state;
+      final bool isAuthenticated = authState is AuthAuthenticated;
+      final bool isUnauthenticated = authState is AuthUnauthenticated;
+
+      // Check location
+      final bool isLoggingIn =
+          state.matchedLocation == loginPath ||
+          state.matchedLocation == registerPath;
+
+      // Allow Loading to exist while initializing
+      if (authState is AuthInitial || authState is AuthLoading) {
+        return null;
+      }
+
+      // If unauthenticated
+      if (isUnauthenticated) {
+        if (!isLoggingIn) return loginPath;
+        return null;
+      }
+
+      // If authenticated
+      if (isAuthenticated) {
+        if (isLoggingIn) {
+          return homePath;
+        }
+        return null;
+      }
+
+      return null;
+    },
     routes: [
-      // Splash / Initial Route
-      GoRoute(
-        path: splashPath,
-        name: splash,
-        builder: (context, state) => const _PlaceholderScreen(title: 'Splash'),
-      ),
-      
       // Auth Routes
       GoRoute(
         path: loginPath,
         name: login,
-        builder: (context, state) => BlocProvider(
-          create: (_) => getIt<AuthCubit>(),
-          child: const LoginScreen(),
-        ),
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: registerPath,
         name: register,
-        builder: (context, state) => BlocProvider(
-          create: (_) => getIt<AuthCubit>(),
-          child: const RegisterScreen(),
-        ),
+        builder: (context, state) => const RegisterScreen(),
       ),
       
       // Main App Routes
       GoRoute(
         path: homePath,
         name: home,
-        builder: (context, state) => const _PlaceholderScreen(title: 'Home'),
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<HomeCubit>(),
+          child: const HomeScreen(),
+        ),
       ),
       
-      // Products
+      // Checkout
       GoRoute(
-        path: productsPath,
-        name: products,
-        builder: (context, state) => const _PlaceholderScreen(title: 'Products'),
-      ),
-      GoRoute(
-        path: productDetailsPath,
-        name: productDetails,
-        builder: (context, state) {
-          final id = state.pathParameters['id'] ?? '';
-          return _PlaceholderScreen(title: 'Product: $id');
-        },
+        path: checkoutPath,
+        name: checkout,
+        builder: (context, state) =>
+            const _PlaceholderScreen(title: 'Checkout'),
       ),
       
       // Cart & Checkout
@@ -113,11 +127,6 @@ class AppRouter {
         path: cartPath,
         name: cart,
         builder: (context, state) => const _PlaceholderScreen(title: 'Cart'),
-      ),
-      GoRoute(
-        path: checkoutPath,
-        name: checkout,
-        builder: (context, state) => const _PlaceholderScreen(title: 'Checkout'),
       ),
       
       // Orders

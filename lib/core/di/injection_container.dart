@@ -1,10 +1,8 @@
 import 'package:get_it/get_it.dart';
 import '../network/api_client.dart';
 import '../storage/secure_storage_service.dart';
-import '../../features/auth/data/datasources/auth_remote_datasource.dart';
-import '../../features/auth/data/repositories/auth_repository_impl.dart';
-import '../../features/auth/domain/repositories/auth_repository.dart';
-import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/auth/auth.dart';
+import '../../features/home/home.dart';
 
 /// Global GetIt instance for dependency injection
 final GetIt getIt = GetIt.instance;
@@ -36,22 +34,29 @@ Future<void> initializeDependencies() async {
   // AUTH FEATURE
   // ============================================
 
-  // Auth DataSource
+  // Features - Auth
   getIt.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
   );
-
-  // Auth Repository
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
       remoteDataSource: getIt<AuthRemoteDataSource>(),
       storageService: getIt<SecureStorageService>(),
     ),
   );
-
-  // Auth Cubit (Factory - new instance per screen)
-  getIt.registerFactory<AuthCubit>(
+  getIt.registerLazySingleton<AuthCubit>(
     () => AuthCubit(authRepository: getIt<AuthRepository>()),
+  );
+
+  // Features - Home
+  getIt.registerLazySingleton<HomeRemoteDataSource>(
+    () => HomeRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<HomeRepository>(
+    () => HomeRepositoryImpl(remoteDataSource: getIt<HomeRemoteDataSource>()),
+  );
+  getIt.registerFactory<HomeCubit>(
+    () => HomeCubit(homeRepository: getIt<HomeRepository>()),
   );
 }
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app/app.dart';
+import 'app/router.dart';
 import 'core/di/injection_container.dart';
+import 'features/auth/domain/repositories/auth_repository.dart';
 
 void main() async {
   // Ensure Flutter bindings are initialized
@@ -26,6 +28,13 @@ void main() async {
   // Initialize dependencies
   await initializeDependencies();
 
+  // Check initial auth state
+  final authRepository = getIt<AuthRepository>();
+  final user = await authRepository.getCurrentUser();
+  final String initialRoute = (user != null && user.isAuthenticated)
+      ? AppRouter.homePath
+      : AppRouter.loginPath;
+
   // Run the app
-  runApp(const RamtexApp());
+  runApp(RamtexApp(initialRoute: initialRoute));
 }
