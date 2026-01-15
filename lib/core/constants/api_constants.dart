@@ -3,8 +3,35 @@
 /// Contains base URLs, endpoints, and other API-related constants.
 library;
 
+/// Environment configuration
+enum ApiEnvironment {
+  /// Android Emulator (uses 10.0.2.2 to access host)
+  androidEmulator,
+
+  /// iOS Simulator (uses localhost)
+  iosSimulator,
+
+  /// Physical Device via Ngrok tunnel
+  physicalDevice,
+
+  /// Production server
+  production,
+}
+
 class ApiConstants {
   ApiConstants._();
+
+  // ============================================
+  // 🔧 CHANGE THIS TO SWITCH ENVIRONMENT
+  // ============================================
+
+  /// Current environment - CHANGE THIS for testing
+  static const ApiEnvironment currentEnvironment =
+      ApiEnvironment.physicalDevice;
+
+  /// 📱 NGROK URL - Paste your ngrok URL here for physical device testing
+  /// Example: 'https://abc123xyz.ngrok-free.app'
+  static const String ngrokUrl = 'https://6e0c7fe9fb33.ngrok-free.app';
 
   // ============================================
   // BASE URL CONFIGURATION
@@ -16,12 +43,25 @@ class ApiConstants {
   /// Base URL for iOS Simulator (uses localhost)
   static const String baseUrlIOS = 'http://localhost:8000/api';
   
+  /// Base URL for Physical Device (via Ngrok)
+  static String get baseUrlPhysicalDevice => '$ngrokUrl/api';
+  
   /// Production base URL (update when deploying)
   static const String baseUrlProduction = 'https://api.ramtex.com/api';
   
-  /// Current active base URL
-  /// Change this based on your environment
-  static const String baseUrl = baseUrlAndroid;
+  /// Current active base URL based on environment
+  static String get baseUrl {
+    switch (currentEnvironment) {
+      case ApiEnvironment.androidEmulator:
+        return baseUrlAndroid;
+      case ApiEnvironment.iosSimulator:
+        return baseUrlIOS;
+      case ApiEnvironment.physicalDevice:
+        return baseUrlPhysicalDevice;
+      case ApiEnvironment.production:
+        return baseUrlProduction;
+    }
+  }
 
   // ============================================
   // TIMEOUTS

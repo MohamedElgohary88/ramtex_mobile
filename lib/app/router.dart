@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../core/di/injection_container.dart';
+import '../features/auth/presentation/cubit/auth_cubit.dart';
+import '../features/auth/presentation/screens/login_screen.dart';
+import '../features/auth/presentation/screens/register_screen.dart';
 
 /// App Router Configuration using GoRouter
 /// 
@@ -53,7 +58,7 @@ class AppRouter {
   // ============================================
 
   late final GoRouter router = GoRouter(
-    initialLocation: splashPath,
+    initialLocation: loginPath, // Start at login for now
     debugLogDiagnostics: true,
     routes: [
       // Splash / Initial Route
@@ -67,12 +72,18 @@ class AppRouter {
       GoRoute(
         path: loginPath,
         name: login,
-        builder: (context, state) => const _PlaceholderScreen(title: 'Login'),
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<AuthCubit>(),
+          child: const LoginScreen(),
+        ),
       ),
       GoRoute(
         path: registerPath,
         name: register,
-        builder: (context, state) => const _PlaceholderScreen(title: 'Register'),
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<AuthCubit>(),
+          child: const RegisterScreen(),
+        ),
       ),
       
       // Main App Routes
@@ -142,21 +153,6 @@ class AppRouter {
       title: 'Error',
       message: state.error?.message ?? 'Page not found',
     ),
-    
-    // TODO: Add redirect logic based on auth state
-    // redirect: (context, state) async {
-    //   final isLoggedIn = await getIt<SecureStorageService>().hasToken();
-    //   final isAuthRoute = state.matchedLocation == loginPath || 
-    //                       state.matchedLocation == registerPath;
-    //   
-    //   if (!isLoggedIn && !isAuthRoute) {
-    //     return loginPath;
-    //   }
-    //   if (isLoggedIn && isAuthRoute) {
-    //     return homePath;
-    //   }
-    //   return null;
-    // },
   );
 }
 

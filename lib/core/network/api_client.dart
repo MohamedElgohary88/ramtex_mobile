@@ -38,7 +38,7 @@ class ApiClient {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        validateStatus: (status) => status != null && status < 500,
+        // validateStatus: (status) => status != null && status < 500, // REMOVED to let Dio throw on 4xx
       ),
     );
 
