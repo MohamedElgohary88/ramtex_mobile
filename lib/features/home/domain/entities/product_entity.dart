@@ -25,6 +25,30 @@ class ProductEntity extends Equatable {
 
   bool get onSale => oldPrice != null && oldPrice! > price;
 
+  ProductEntity copyWith({
+    int? id,
+    String? name,
+    String? slug,
+    double? price,
+    double? oldPrice,
+    String? imageUrl,
+    bool? inStock,
+    bool? isFavorite,
+    String? description,
+  }) {
+    return ProductEntity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      slug: slug ?? this.slug,
+      price: price ?? this.price,
+      oldPrice: oldPrice ?? this.oldPrice,
+      imageUrl: imageUrl ?? this.imageUrl,
+      inStock: inStock ?? this.inStock,
+      isFavorite: isFavorite ?? this.isFavorite,
+      description: description ?? this.description,
+    );
+  }
+
   @override
   List<Object?> get props => [
         id,

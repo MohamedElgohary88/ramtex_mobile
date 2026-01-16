@@ -7,15 +7,23 @@ import '../features/auth/presentation/cubit/auth_cubit.dart';
 import '../features/auth/presentation/cubit/auth_state.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/register_screen.dart';
-import '../features/home/home.dart';
-import '../features/products/products.dart';
+import '../features/home/presentation/cubit/home_cubit.dart';
+import '../features/home/presentation/screens/home_screen.dart';
+import '../features/products/domain/params/product_filter_params.dart';
+import '../features/products/presentation/cubit/product_list_cubit.dart';
+import '../features/products/presentation/screens/search_screen.dart';
+import '../features/main/presentation/screens/main_screen.dart';
+import '../features/cart/presentation/screens/cart_screen.dart';
+import '../features/orders/presentation/screens/orders_screen.dart';
+import '../features/profile/presentation/screens/profile_screen.dart';
+import '../features/favorites/favorites.dart';
 
 /// App Router Configuration using GoRouter
 /// 
 /// Declarative routing with:
 /// - Named routes for type-safe navigation
 /// - Auth-based redirects
-/// - Shell routes for bottom navigation (future)
+/// - Shell routes for persistent bottom navigation
 class AppRouter {
   final String initialLocation;
 
@@ -41,6 +49,7 @@ class AppRouter {
   // ROUTE PATHS
   // ============================================
   
+  static const String splashPath = '/';
   static const String loginPath = '/login';
   static const String registerPath = '/register';
   static const String homePath = '/home';
@@ -64,7 +73,7 @@ class AppRouter {
     redirect: (context, state) {
       final authState = getIt<AuthCubit>().state;
       final bool isAuthenticated = authState is AuthAuthenticated;
-      final bool isUnauthenticated = authState is AuthUnauthenticated;
+      // final bool isUnauthenticated = authState is AuthUnauthenticated; // Unused for now
 
       // Check location
       final bool isLoggingIn =
@@ -76,18 +85,14 @@ class AppRouter {
         return null;
       }
 
-      // If unauthenticated
-      if (isUnauthenticated) {
-        if (!isLoggingIn) return loginPath;
-        return null;
+      // If unauthenticated, redirect to login unless already logging in
+      if (!isAuthenticated && !isLoggingIn) {
+        return loginPath;
       }
 
-      // If authenticated
-      if (isAuthenticated) {
-        if (isLoggingIn) {
-          return homePath;
-        }
-        return null;
+      // If authenticated, redirect login/register to home
+      if (isAuthenticated && isLoggingIn) {
+        return homePath;
       }
 
       return null;
@@ -105,64 +110,93 @@ class AppRouter {
         builder: (context, state) => const RegisterScreen(),
       ),
       
-      // Main App Routes
-      GoRoute(
-        path: homePath,
-        name: home,
-        builder: (context, state) => BlocProvider(
-          create: (_) => getIt<HomeCubit>(),
-          child: const HomeScreen(),
-        ),
+      // Main App Shell (Botton Navigation)
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          // Provide FavoritesCubit to the entire shell
+          return MainScreen(navigationShell: navigationShell);
+        },
+        branches: [
+          // Branch 1: Home
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: homePath,
+                name: home,
+                builder: (context, state) => BlocProvider(
+                  create: (_) => getIt<HomeCubit>()..loadHomeData(),
+                  child: const HomeScreen(),
+                ),
+              ),
+            ],
+          ),
+          
+          // Branch 2: Cart
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: cartPath,
+                name: cart,
+                builder: (context, state) => const CartScreen(),
+              ),
+            ],
+          ),
+          
+          // Branch 3: Orders
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: ordersPath,
+                name: orders,
+                builder: (context, state) => const OrdersScreen(),
+              ),
+            ],
+          ),
+          
+          // Branch 4: Profile
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: profilePath,
+                name: profile,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
+
+      // Standalone Routes (Push on top of Shell)
       GoRoute(
         path: productsPath,
         name: products,
         builder: (context, state) => BlocProvider(
           create: (_) => getIt<ProductListCubit>(),
-          child: const SearchScreen(),
+          child: SearchScreen(
+            initialFilters: state.extra as ProductFilterParams?,
+          ),
         ),
       ),
-      
-      // Checkout
+      GoRoute(
+        path: productDetailsPath,
+        name: productDetails,
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '0';
+          return Scaffold(appBar: AppBar(title: Text('Product $id')));
+        },
+      ),
+      GoRoute(
+        path: favoritesPath,
+        name: favorites,
+        builder: (context, state) => const FavoritesScreen(),
+      ),
+
+      // Unimplemented placeholders
       GoRoute(
         path: checkoutPath,
         name: checkout,
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Checkout'),
-      ),
-      
-      // Cart & Checkout
-      GoRoute(
-        path: cartPath,
-        name: cart,
-        builder: (context, state) => const _PlaceholderScreen(title: 'Cart'),
-      ),
-      
-      // Orders
-      GoRoute(
-        path: ordersPath,
-        name: orders,
-        builder: (context, state) => const _PlaceholderScreen(title: 'Orders'),
-      ),
-      GoRoute(
-        path: orderDetailsPath,
-        name: orderDetails,
-        builder: (context, state) {
-          final id = state.pathParameters['id'] ?? '';
-          return _PlaceholderScreen(title: 'Order: $id');
-        },
-      ),
-      
-      // Profile & Favorites
-      GoRoute(
-        path: profilePath,
-        name: profile,
-        builder: (context, state) => const _PlaceholderScreen(title: 'Profile'),
-      ),
-      GoRoute(
-        path: favoritesPath,
-        name: favorites,
-        builder: (context, state) => const _PlaceholderScreen(title: 'Favorites'),
       ),
     ],
     

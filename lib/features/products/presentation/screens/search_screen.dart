@@ -9,16 +9,9 @@ import '../cubit/product_list_state.dart';
 import '../widgets/filter_bottom_sheet.dart';
 
 class SearchScreen extends StatefulWidget {
-  final String? initialSearchQuery;
-  final int? initialCategoryId;
-  final int? initialBrandId;
+  final ProductFilterParams? initialFilters;
 
-  const SearchScreen({
-    super.key,
-    this.initialSearchQuery,
-    this.initialCategoryId,
-    this.initialBrandId,
-  });
+  const SearchScreen({super.key, this.initialFilters});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -32,19 +25,24 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
-    _searchController.text = widget.initialSearchQuery ?? '';
     _scrollController.addListener(_onScroll);
-
-    // Initial Load
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductListCubit>().loadProducts(
-        params: ProductFilterParams(
-          searchQuery: widget.initialSearchQuery,
-          categoryId: widget.initialCategoryId,
-          brandId: widget.initialBrandId,
-        ),
-      );
-    });
+    
+    // Initialize filters if provided
+    if (widget.initialFilters != null) {
+      if (widget.initialFilters!.searchQuery != null) {
+        _searchController.text = widget.initialFilters!.searchQuery!;
+      }
+      // Delay slightly to let the updated Cubit instance be ready if needed,
+      // or just call updateFilters directly which loads products.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<ProductListCubit>().updateFilters(widget.initialFilters!);
+      });
+    } else {
+      // Initial Load with default parameters if no initial filters are provided
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<ProductListCubit>().loadProducts();
+      });
+    }
   }
 
   @override
@@ -172,12 +170,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   final product = state.products[index];
                   return ProductCardWidget(
                     product: product,
-                    onTap: () {
-                      // Navigate to details
-                      // context.pushNamed(AppRouter.productDetails, pathParameters: {'id': product.id.toString()});
-                    },
-                    onFavoriteToggle: () {},
-                    onAddToCart: () {},
                   );
                 },
               ),

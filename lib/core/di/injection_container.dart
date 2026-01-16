@@ -1,9 +1,14 @@
 import 'package:get_it/get_it.dart';
-import '../network/api_client.dart';
-import '../storage/secure_storage_service.dart';
-import '../../features/auth/auth.dart';
+import '../../features/auth/data/datasources/auth_remote_datasource.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/home/home.dart';
 import '../../features/products/products.dart';
+import '../../features/favorites/favorites.dart';
+import '../../features/cart/cart.dart';
+import '../network/api_client.dart';
+import '../storage/secure_storage_service.dart';
 
 /// Global GetIt instance for dependency injection
 final GetIt getIt = GetIt.instance;
@@ -71,6 +76,30 @@ Future<void> initializeDependencies() async {
   );
   getIt.registerFactory<ProductListCubit>(
     () => ProductListCubit(repository: getIt<ProductsRepository>()),
+  );
+
+  // Features - Favorites
+  getIt.registerLazySingleton<FavoritesRemoteDataSource>(
+    () => FavoritesRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<FavoritesRepository>(
+    () => FavoritesRepositoryImpl(
+      remoteDataSource: getIt<FavoritesRemoteDataSource>(),
+    ),
+  );
+  getIt.registerFactory<FavoritesCubit>(
+    () => FavoritesCubit(repository: getIt<FavoritesRepository>()),
+  );
+
+  // Features - Cart
+  getIt.registerLazySingleton<CartRemoteDataSource>(
+    () => CartRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<CartRepository>(
+    () => CartRepositoryImpl(remoteDataSource: getIt<CartRemoteDataSource>()),
+  );
+  getIt.registerFactory<CartCubit>(
+    () => CartCubit(repository: getIt<CartRepository>()),
   );
 }
 

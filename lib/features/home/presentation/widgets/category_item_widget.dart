@@ -23,23 +23,36 @@ class CategoryItemWidget extends StatelessWidget {
             width: 70,
             height: 70,
             decoration: BoxDecoration(
+              color: AppColors.white,
               shape: BoxShape.circle,
-              color: AppColors.background,
               border: Border.all(color: AppColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            clipBehavior: Clip.antiAlias,
-            child: category.imageUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: category.imageUrl!,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => const Icon(Icons.image, color: Colors.grey),
-                    errorWidget: (context, url, error) => const Icon(Icons.error, color: Colors.grey),
-                  )
-                : const Icon(Icons.category, color: AppColors.textSecondary),
+            child: ClipOval(
+              child: category.imageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: category.imageUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      errorWidget: (context, url, error) => const Icon(
+                        Icons.image_not_supported,
+                        color: Colors.grey,
+                      ),
+                    )
+                  : const Icon(Icons.category, color: Colors.grey),
+            ),
           ),
           const SizedBox(height: 8),
           SizedBox(
-            width: 70,
+            width: 80,
             child: Text(
               category.name,
               textAlign: TextAlign.center,

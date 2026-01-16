@@ -19,27 +19,33 @@ class BrandItemWidget extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: 100,
-        height: 60,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppColors.border),
         ),
-        child: brand.logoUrl != null
-            ? CachedNetworkImage(
-                imageUrl: brand.logoUrl!,
-                fit: BoxFit.contain,
-                placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 1)),
-                errorWidget: (context, url, error) => const Icon(Icons.branding_watermark, color: Colors.grey),
-              )
-            : Center(
-                child: Text(
+        child: Center(
+          child: brand.logoUrl != null
+              ? CachedNetworkImage(
+                  imageUrl: brand.logoUrl!,
+                  height: 40,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  errorWidget: (context, url, error) =>
+                      const Icon(Icons.broken_image, color: Colors.grey),
+                )
+              : Text(
                   brand.name,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }

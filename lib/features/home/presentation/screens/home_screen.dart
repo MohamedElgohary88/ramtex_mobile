@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/home_data.dart';
+import '../../../products/domain/params/product_filter_params.dart';
 import '../cubit/home_cubit.dart';
 import '../cubit/home_state.dart';
 import '../widgets/brand_item_widget.dart';
 import '../widgets/category_item_widget.dart';
+import '../widgets/home_carousel_widget.dart';
 import '../widgets/product_card_widget.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -81,6 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       actions: [
         IconButton(
+          icon: const Icon(Icons.favorite_border),
+          onPressed: () => context.pushNamed(AppRouter.favorites),
+        ),
+        IconButton(
           icon: const Icon(Icons.notifications_outlined),
           onPressed: () {}, // Todo: Notifications
         ),
@@ -93,9 +99,27 @@ class _HomeScreenState extends State<HomeScreen> {
       onRefresh: () => context.read<HomeCubit>().loadHomeData(),
       child: CustomScrollView(
         slivers: [
-          // 1. Categories
+          // 1. Hero Carousel (Pager)
+          if (data.featuredProducts.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16, bottom: 24),
+                child: HomeCarouselWidget(
+                  // Show top 5 items or less
+                  products: data.featuredProducts.take(5).toList(),
+                ),
+              ),
+            ),
+
+          // 2. Categories
           if (data.categories.isNotEmpty) ...[
-            _buildSectionTitle('Browse Categories', onSeeAll: () {}),
+            _buildSectionTitle(
+              'Browse Categories',
+              onSeeAll: () => context.pushNamed(
+                AppRouter.products,
+                extra: ProductFilterParams(), // All products
+              ),
+            ),
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 110,
@@ -105,14 +129,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: data.categories.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 16),
                   itemBuilder: (context, index) {
-                    return CategoryItemWidget(category: data.categories[index]);
+                    final category = data.categories[index];
+                    return CategoryItemWidget(
+                      category: category,
+                      onTap: () => context.pushNamed(
+                        AppRouter.products,
+                        extra: ProductFilterParams(categoryId: category.id),
+                      ),
+                    );
                   },
                 ),
               ),
             ),
           ],
 
-          // 2. Brands
+          // 3. Brands
           if (data.brands.isNotEmpty) ...[
             _buildSectionTitle('Shop by Brand'),
             SliverToBoxAdapter(
@@ -124,16 +155,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: data.brands.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
-                    return BrandItemWidget(brand: data.brands[index]);
+                    final brand = data.brands[index];
+                    return BrandItemWidget(
+                      brand: brand,
+                      onTap: () => context.pushNamed(
+                        AppRouter.products,
+                        extra: ProductFilterParams(brandId: brand.id),
+                      ),
+                    );
                   },
                 ),
               ),
             ),
           ],
 
-          // 3. Featured Products
+          // 4. New Arrivals (Grid)
           if (data.featuredProducts.isNotEmpty) ...[
-            _buildSectionTitle('New Arrivals'),
+            _buildSectionTitle(
+              'New Arrivals',
+              onSeeAll: () => context.pushNamed(
+                AppRouter.products,
+                extra: ProductFilterParams(sort: 'created_at'),
+              ),
+            ),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverGrid(
@@ -147,11 +191,46 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisCount: 2,
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: 0.7,
+                  childAspectRatio: 0.65, // Adjusted for taller card
                 ),
               ),
             ),
+          ],
+
+          // 5. Best Sellers (Simulated for now with reversed list)
+          if (data.featuredProducts.isNotEmpty) ...[
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            _buildSectionTitle(
+              'Best Sellers',
+              onSeeAll: () => context.pushNamed(
+                AppRouter.products,
+                extra: ProductFilterParams(
+                  sort: 'price_desc',
+                ), // Logic for "best"
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverGrid(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  // Show in reverse order to simulate "different" content
+                  final reversedIndex =
+                      data.featuredProducts.length - 1 - index;
+                  return ProductCardWidget(
+                    product: data.featuredProducts[reversedIndex],
+                  );
+                }, childCount: data.featuredProducts.length),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 0.65,
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 48),
+            ), // Bottom padding
           ],
         ],
       ),
