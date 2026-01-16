@@ -77,6 +77,12 @@ Future<void> initializeDependencies() async {
   getIt.registerFactory<ProductListCubit>(
     () => ProductListCubit(repository: getIt<ProductsRepository>()),
   );
+  getIt.registerFactory<ProductDetailsCubit>(
+    () => ProductDetailsCubit(
+      productsRepository: getIt<ProductsRepository>(),
+      cartRepository: getIt<CartRepository>(),
+    ),
+  );
 
   // Features - Favorites
   getIt.registerLazySingleton<FavoritesRemoteDataSource>(

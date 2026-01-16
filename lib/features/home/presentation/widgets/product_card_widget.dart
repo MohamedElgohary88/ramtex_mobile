@@ -48,21 +48,25 @@ class ProductCardWidget extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(16),
                     ),
-                    child: CachedNetworkImage(
-                      imageUrl:
-                          product.imageUrl ?? 'https://via.placeholder.com/150',
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[100],
-                        child: const Center(
-                          child: CircularProgressIndicator.adaptive(),
+                    child: Hero(
+                      tag: 'product_image_${product.id}',
+                      child: CachedNetworkImage(
+                        imageUrl:
+                            product.imageUrl ??
+                            'https://via.placeholder.com/150',
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[100],
+                          child: const Center(
+                            child: CircularProgressIndicator.adaptive(),
+                          ),
                         ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[100],
-                        child: const Icon(
-                          Icons.broken_image,
-                          color: Colors.grey,
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[100],
+                          child: const Icon(
+                            Icons.broken_image,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     ),

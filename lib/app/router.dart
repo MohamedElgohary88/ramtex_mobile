@@ -11,7 +11,9 @@ import '../features/home/presentation/cubit/home_cubit.dart';
 import '../features/home/presentation/screens/home_screen.dart';
 import '../features/products/domain/params/product_filter_params.dart';
 import '../features/products/presentation/cubit/product_list_cubit.dart';
+import '../features/products/presentation/cubit/product_details_cubit.dart';
 import '../features/products/presentation/screens/search_screen.dart';
+import '../features/products/presentation/screens/product_details_screen.dart';
 import '../features/main/presentation/screens/main_screen.dart';
 import '../features/cart/presentation/screens/cart_screen.dart';
 import '../features/orders/presentation/screens/orders_screen.dart';
@@ -181,8 +183,11 @@ class AppRouter {
         path: productDetailsPath,
         name: productDetails,
         builder: (context, state) {
-          final id = state.pathParameters['id'] ?? '0';
-          return Scaffold(appBar: AppBar(title: Text('Product $id')));
+          final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+          return BlocProvider(
+            create: (_) => getIt<ProductDetailsCubit>(),
+            child: ProductDetailsScreen(productId: id),
+          );
         },
       ),
       GoRoute(

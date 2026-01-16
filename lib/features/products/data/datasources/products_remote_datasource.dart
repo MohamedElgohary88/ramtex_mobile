@@ -1,9 +1,12 @@
 import '../../../../core/network/api_client.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../../home/data/models/product_model.dart';
 import '../../domain/params/product_filter_params.dart';
+import '../models/product_details_model.dart';
 
 abstract class ProductsRemoteDataSource {
   Future<ProductListResponse> getProducts(ProductFilterParams params);
+  Future<ProductDetailsModel> getProductById(int productId);
 }
 
 class ProductListResponse {
@@ -20,7 +23,6 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
 
   @override
   Future<ProductListResponse> getProducts(ProductFilterParams params) async {
-    // Determine query params
     final queryParams = params.toMap();
 
     final response = await _apiClient.get(
@@ -28,8 +30,6 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
       queryParameters: queryParams,
     );
 
-    // Parse response
-    // Structure: { data: [...], meta: { current_page: 1, last_page: 5, ... } }
     final data = response.data['data'] as List;
     final meta = response.data['meta'] as Map<String, dynamic>;
 
@@ -38,4 +38,14 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
 
     return ProductListResponse(products: products, lastPage: lastPage);
   }
+
+  @override
+  Future<ProductDetailsModel> getProductById(int productId) async {
+    final response = await _apiClient.get(ApiConstants.product(productId));
+
+    // API returns: { "data": { ...product... } }
+    final data = response.data['data'] ?? response.data;
+    return ProductDetailsModel.fromJson(data);
+  }
 }
+

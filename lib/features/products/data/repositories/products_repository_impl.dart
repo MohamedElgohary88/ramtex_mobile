@@ -1,6 +1,7 @@
 import '../../../../core/common/result.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../domain/entities/product_details_entity.dart';
 import '../../domain/params/product_filter_params.dart';
 import '../../domain/repositories/products_repository.dart';
 import '../datasources/products_remote_datasource.dart';
@@ -24,6 +25,18 @@ class ProductsRepositoryImpl implements ProductsRepository {
           lastPage: response.lastPage,
         ),
       );
+    } on AppException catch (e) {
+      return FailureResult(_mapExceptionToFailure(e));
+    } catch (e) {
+      return FailureResult(UnknownFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<ProductDetailsEntity>> getProductById(int productId) async {
+    try {
+      final product = await _remoteDataSource.getProductById(productId);
+      return Success(product);
     } on AppException catch (e) {
       return FailureResult(_mapExceptionToFailure(e));
     } catch (e) {
