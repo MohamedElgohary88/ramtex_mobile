@@ -15,6 +15,10 @@ import 'package:ramtex_mobile/features/orders/data/repositories/order_repository
 import 'package:ramtex_mobile/features/orders/domain/repositories/order_repository.dart';
 import 'package:ramtex_mobile/features/orders/presentation/cubit/orders_cubit.dart';
 import 'package:ramtex_mobile/features/orders/presentation/cubit/order_details_cubit.dart';
+import 'package:ramtex_mobile/features/profile/data/datasources/profile_remote_datasource.dart';
+import 'package:ramtex_mobile/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:ramtex_mobile/features/profile/domain/repositories/profile_repository.dart';
+import 'package:ramtex_mobile/features/profile/presentation/cubit/profile_cubit.dart';
 
 /// Global GetIt instance for dependency injection
 final GetIt getIt = GetIt.instance;
@@ -129,6 +133,19 @@ Future<void> initializeDependencies() async {
   );
   getIt.registerFactory<OrderDetailsCubit>(
     () => OrderDetailsCubit(repository: getIt<OrderRepository>()),
+  );
+
+  // Features - Profile
+  getIt.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(
+      remoteDataSource: getIt<ProfileRemoteDataSource>(),
+    ),
+  );
+  getIt.registerFactory<ProfileCubit>(
+    () => ProfileCubit(repository: getIt<ProfileRepository>()),
   );
 }
 

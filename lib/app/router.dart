@@ -19,7 +19,12 @@ import '../features/cart/presentation/screens/cart_screen.dart';
 import '../features/orders/presentation/screens/orders_screen.dart';
 import '../features/orders/presentation/screens/order_details_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
+import '../features/profile/presentation/screens/account_info_screen.dart';
+import '../features/profile/presentation/screens/about_us_screen.dart';
+import '../features/profile/presentation/screens/privacy_policy_screen.dart';
+import '../features/profile/presentation/screens/settings_screen.dart';
 import '../features/favorites/favorites.dart';
+import '../features/profile/domain/entities/profile_entity.dart';
 
 /// App Router Configuration using GoRouter
 /// 
@@ -54,6 +59,10 @@ class AppRouter {
   static const String orderDetails = 'orderDetails';
   static const String profile = 'profile';
   static const String favorites = 'favorites';
+  static const String accountInfo = 'accountInfo';
+  static const String aboutUs = 'aboutUs';
+  static const String privacyPolicy = 'privacyPolicy';
+  static const String settings = 'settings';
 
   // ============================================
   // ROUTE PATHS
@@ -71,6 +80,10 @@ class AppRouter {
   static const String orderDetailsPath = '/orders/:id';
   static const String profilePath = '/profile';
   static const String favoritesPath = '/favorites';
+  static const String accountInfoPath = '/profile/info';
+  static const String aboutUsPath = '/profile/about';
+  static const String privacyPolicyPath = '/profile/privacy';
+  static const String settingsPath = '/profile/settings';
 
   // ============================================
   // ROUTER CONFIGURATION
@@ -220,8 +233,48 @@ class AppRouter {
           return OrderDetailsScreen(orderId: id);
         },
       ),
+      
+      // Profile Sub-routes
+      GoRoute(
+        path: accountInfoPath,
+        name: accountInfo,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          // Expect ProfileEntity in extra for safety, or we could refetch if null
+          // If null, we might need to handle it. For now assuming passed.
+          final profile = state.extra as ProfileEntity?;
+          if (profile == null) {
+            // Fallback or error?
+            // Maybe fetch? But that requires Cubit here.
+            // Just show error or redirect back.
+            // Let's assume it's passed.
+            return const Scaffold(
+              body: Center(child: Text('Error: No profile data passed')),
+            );
+          }
+          return AccountInfoScreen(profile: profile);
+        },
+      ),
+      GoRoute(
+        path: aboutUsPath,
+        name: aboutUs,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const AboutUsScreen(),
+      ),
+      GoRoute(
+        path: privacyPolicyPath,
+        name: privacyPolicy,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        path: settingsPath,
+        name: settings,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const SettingsScreen(),
+      ),
     ],
-    
+
     // Error handling
     errorBuilder: (context, state) => _PlaceholderScreen(
       title: 'Error',
