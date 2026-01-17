@@ -1,13 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/common/result.dart';
-import '../../domain/entities/cart_item_entity.dart';
-import '../../domain/repositories/cart_repository.dart';
+import 'package:ramtex_mobile/features/cart/domain/entities/cart_item_entity.dart';
+import 'package:ramtex_mobile/features/cart/domain/repositories/cart_repository.dart';
+import 'package:ramtex_mobile/features/orders/domain/repositories/order_repository.dart';
+
 import 'cart_state.dart';
 
 class CartCubit extends Cubit<CartState> {
   final CartRepository repository;
+  final OrderRepository orderRepository;
 
-  CartCubit({required this.repository}) : super(CartInitial());
+  CartCubit({required this.repository, required this.orderRepository})
+    : super(CartInitial());
 
   Future<void> loadCart() async {
     emit(CartLoading());
@@ -135,5 +139,29 @@ class CartCubit extends Cubit<CartState> {
           ),
         );
     }
+  }
+  Future<bool> checkout(String? notes) async {
+    // 1. Emit loading or separate checkout loading state?
+    // Using CartLoading might hide the cart. Let's assume the UI handles it via a bool or separate state.
+    // For now, let's keep it simple: Just return result or emit error.
+    // Ideally, we should have a `isCheckingOut` flag in CartLoaded.
+    // But since CartState is sealed, adding a field is hard without refactor.
+    // Alternative: Just return success/failure boolean and let UI show spinner.
+    // Or simpler: Emit CartLoading (which shows spinner) then CartLoaded (empty).
+
+    emit(CartLoading());
+    final result = await orderRepository.placeOrder(notes);
+
+    return result.fold(
+      (failure) {
+        emit(CartError(failure.message));
+        return false;
+      },
+      (_) async {
+        // Success! Cart is cleared on server. Reload cart to get empty state.
+        await loadCart();
+        return true;
+      },
+    );
   }
 }

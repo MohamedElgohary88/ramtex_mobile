@@ -128,7 +128,6 @@ class _CartScreenState extends State<CartScreen> {
                     children: [
                       _buildSummaryRow('Subtotal', state.cart.subtotal),
                       const SizedBox(height: 8),
-                      // If Tax is 0, maybe hide? Or show 0.00
                       if (state.cart.tax > 0) ...[
                         _buildSummaryRow('Tax', state.cart.tax),
                         const SizedBox(height: 8),
@@ -145,19 +144,9 @@ class _CartScreenState extends State<CartScreen> {
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () {
-                            // Proceed to Checkout
-                            // context.pushNamed(AppRouter.checkout);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Checkout flow not implemented yet',
-                                ),
-                              ),
-                            );
-                          },
+                          onPressed: () => _showCheckoutDialog(context),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.accent, // Accent Color
+                            backgroundColor: AppColors.accent,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -194,8 +183,7 @@ class _CartScreenState extends State<CartScreen> {
           style: TextStyle(
             fontSize: isTotal ? 18 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color:
-                AppColors.textSecondary, // Always gray for label as per design
+            color: AppColors.textSecondary,
           ),
         ),
         Text(
@@ -203,12 +191,110 @@ class _CartScreenState extends State<CartScreen> {
           style: TextStyle(
             fontSize: isTotal ? 18 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: isTotal
-                ? AppColors.accent
-                : AppColors.textPrimary, // Accent for Total
+            color: isTotal ? AppColors.accent : AppColors.textPrimary,
           ),
         ),
       ],
     );
+  }
+
+  void _showCheckoutDialog(BuildContext context) {
+    final TextEditingController notesController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Confirm Order',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Add any special instructions for your order (optional):',
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: notesController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'Notes...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close sheet
+                  _processCheckout(context, notesController.text.trim());
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Place Order',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _processCheckout(BuildContext context, String? notes) async {
+    final success = await context.read<CartCubit>().checkout(notes);
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order placed successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      // Navigate to Orders Tab
+      // Since Orders is a shell branch (index 2), usually we switch branch.
+      // GoRouter doesn't have a simple "switch branch" method without context.goNamed which resets stack.
+      // Assuming 'orders' named route switches to that branch.
+      context.goNamed(AppRouter.orders);
+    } else {
+      // Error is handled in Cubit which emits CartError, displaying error in UI
+      // But since we are likely in Loaded state when calling checkout (overlay loading?),
+      // Wait, checkout emits CartLoading.
+      // So UI will switch to Loading -> Error or Loaded(empty).
+      // The `checkout` method returns boolean, but also emits states.
+      // If it fails, it emits CartError(message).
+      // If success, it reloads cart (CartLoaded(empty)).
+    }
   }
 }

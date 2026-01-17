@@ -10,6 +10,12 @@ import '../../features/cart/cart.dart';
 import '../network/api_client.dart';
 import '../storage/secure_storage_service.dart';
 
+import 'package:ramtex_mobile/features/orders/data/datasources/order_remote_datasource.dart';
+import 'package:ramtex_mobile/features/orders/data/repositories/order_repository_impl.dart';
+import 'package:ramtex_mobile/features/orders/domain/repositories/order_repository.dart';
+import 'package:ramtex_mobile/features/orders/presentation/cubit/orders_cubit.dart';
+import 'package:ramtex_mobile/features/orders/presentation/cubit/order_details_cubit.dart';
+
 /// Global GetIt instance for dependency injection
 final GetIt getIt = GetIt.instance;
 
@@ -105,7 +111,24 @@ Future<void> initializeDependencies() async {
     () => CartRepositoryImpl(remoteDataSource: getIt<CartRemoteDataSource>()),
   );
   getIt.registerFactory<CartCubit>(
-    () => CartCubit(repository: getIt<CartRepository>()),
+    () => CartCubit(
+      repository: getIt<CartRepository>(),
+      orderRepository: getIt<OrderRepository>(),
+    ),
+  );
+
+  // Features - Orders
+  getIt.registerLazySingleton<OrderRemoteDataSource>(
+    () => OrderRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<OrderRepository>(
+    () => OrderRepositoryImpl(remoteDataSource: getIt<OrderRemoteDataSource>()),
+  );
+  getIt.registerFactory<OrdersCubit>(
+    () => OrdersCubit(repository: getIt<OrderRepository>()),
+  );
+  getIt.registerFactory<OrderDetailsCubit>(
+    () => OrderDetailsCubit(repository: getIt<OrderRepository>()),
   );
 }
 

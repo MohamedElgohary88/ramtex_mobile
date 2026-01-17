@@ -1,3 +1,4 @@
+import 'package:ramtex_mobile/features/home/data/models/category_model.dart';
 import '../../domain/entities/product_entity.dart';
 
 class ProductModel extends ProductEntity {
@@ -11,6 +12,7 @@ class ProductModel extends ProductEntity {
     required super.inStock,
     super.isFavorite = false,
     super.description,
+    super.category,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,9 @@ class ProductModel extends ProductEntity {
       inStock: json['in_stock'] as bool? ?? true,
       isFavorite: json['is_favorite'] as bool? ?? false,
       description: json['description'] as String?,
+      category: json['category'] != null
+          ? CategoryModel.fromJson(json['category'])
+          : null,
     );
   }
 }

@@ -31,7 +31,7 @@ class ApiConstants {
 
   /// 📱 NGROK URL - Paste your ngrok URL here for physical device testing
   /// Example: 'https://abc123xyz.ngrok-free.app'
-  static const String ngrokUrl = 'https://261566428590.ngrok-free.app';
+  static const String ngrokUrl = 'https://ce383dd7fa81.ngrok-free.app';
 
   // ============================================
   // BASE URL CONFIGURATION

@@ -17,6 +17,7 @@ import '../features/products/presentation/screens/product_details_screen.dart';
 import '../features/main/presentation/screens/main_screen.dart';
 import '../features/cart/presentation/screens/cart_screen.dart';
 import '../features/orders/presentation/screens/orders_screen.dart';
+import '../features/orders/presentation/screens/order_details_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/favorites/favorites.dart';
 
@@ -30,6 +31,13 @@ class AppRouter {
   final String initialLocation;
 
   AppRouter({required this.initialLocation});
+
+  // ============================================
+  // KEYS
+  // ============================================
+
+  static final GlobalKey<NavigatorState> rootNavigatorKey =
+      GlobalKey<NavigatorState>();
 
   // ============================================
   // ROUTE NAMES
@@ -69,6 +77,7 @@ class AppRouter {
   // ============================================
 
   late final GoRouter router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: initialLocation, 
     debugLogDiagnostics: true,
     refreshListenable: GoRouterRefreshStream(getIt<AuthCubit>().stream),
@@ -202,6 +211,14 @@ class AppRouter {
         name: checkout,
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Checkout'),
+      ),
+      GoRoute(
+        path: orderDetailsPath,
+        name: orderDetails,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+          return OrderDetailsScreen(orderId: id);
+        },
       ),
     ],
     

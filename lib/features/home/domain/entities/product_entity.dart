@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:ramtex_mobile/features/home/domain/entities/category_entity.dart';
 
 class ProductEntity extends Equatable {
   final int id;
@@ -10,6 +11,7 @@ class ProductEntity extends Equatable {
   final bool inStock;
   final bool isFavorite;
   final String? description;
+  final CategoryEntity? category;
 
   const ProductEntity({
     required this.id,
@@ -21,6 +23,7 @@ class ProductEntity extends Equatable {
     required this.inStock,
     this.isFavorite = false,
     this.description,
+    this.category,
   });
 
   bool get onSale => oldPrice != null && oldPrice! > price;
@@ -35,6 +38,7 @@ class ProductEntity extends Equatable {
     bool? inStock,
     bool? isFavorite,
     String? description,
+    CategoryEntity? category,
   }) {
     return ProductEntity(
       id: id ?? this.id,
@@ -46,6 +50,7 @@ class ProductEntity extends Equatable {
       inStock: inStock ?? this.inStock,
       isFavorite: isFavorite ?? this.isFavorite,
       description: description ?? this.description,
+      category: category ?? this.category,
     );
   }
 
@@ -60,5 +65,6 @@ class ProductEntity extends Equatable {
         inStock,
         isFavorite,
         description,
+    category,
       ];
 }

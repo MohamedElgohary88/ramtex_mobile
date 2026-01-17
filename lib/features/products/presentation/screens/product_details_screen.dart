@@ -701,8 +701,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                 action: SnackBarAction(
                                   label: 'VIEW CART',
                                   textColor: Colors.white,
-                                  onPressed: () =>
-                                      context.goNamed(AppRouter.cart),
+                                  onPressed: () {
+                                    final rootContext = AppRouter
+                                        .rootNavigatorKey
+                                        .currentContext;
+                                    if (rootContext != null) {
+                                      rootContext.goNamed(AppRouter.cart);
+                                    }
+                                  },
                                 ),
                               ),
                             );
